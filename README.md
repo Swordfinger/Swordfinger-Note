@@ -1,0 +1,2 @@
+# Swordfinger-Note
+利用Apple自己的写作模块来制作一个Swordfinger的Note
