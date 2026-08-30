@@ -1,0 +1,578 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		F2B0FE333043A1EA002F4C51 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2B0FE1B3043A1E9002F4C51 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F2B0FE223043A1E9002F4C51;
+			remoteInfo = "Swordfinger的Note";
+		};
+		F2B0FE3D3043A1EA002F4C51 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F2B0FE1B3043A1E9002F4C51 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F2B0FE223043A1E9002F4C51;
+			remoteInfo = "Swordfinger的Note";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		F2B0FE233043A1E9002F4C51 /* Swordfinger的Note.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Swordfinger的Note.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2B0FE323043A1EA002F4C51 /* Swordfinger的NoteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Swordfinger的NoteTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2B0FE3C3043A1EA002F4C51 /* Swordfinger的NoteUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Swordfinger的NoteUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F2B0FE253043A1E9002F4C51 /* Swordfinger的Note */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Swordfinger的Note";
+			sourceTree = "<group>";
+		};
+		F2B0FE353043A1EA002F4C51 /* Swordfinger的NoteTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Swordfinger的NoteTests";
+			sourceTree = "<group>";
+		};
+		F2B0FE3F3043A1EA002F4C51 /* Swordfinger的NoteUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Swordfinger的NoteUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F2B0FE203043A1E9002F4C51 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2B0FE2F3043A1EA002F4C51 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2B0FE393043A1EA002F4C51 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F2B0FE1A3043A1E9002F4C51 = {
+			isa = PBXGroup;
+			children = (
+				F2B0FE253043A1E9002F4C51 /* Swordfinger的Note */,
+				F2B0FE353043A1EA002F4C51 /* Swordfinger的NoteTests */,
+				F2B0FE3F3043A1EA002F4C51 /* Swordfinger的NoteUITests */,
+				F2B0FE243043A1E9002F4C51 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F2B0FE243043A1E9002F4C51 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F2B0FE233043A1E9002F4C51 /* Swordfinger的Note.app */,
+				F2B0FE323043A1EA002F4C51 /* Swordfinger的NoteTests.xctest */,
+				F2B0FE3C3043A1EA002F4C51 /* Swordfinger的NoteUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F2B0FE223043A1E9002F4C51 /* Swordfinger的Note */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2B0FE463043A1EA002F4C51 /* Build configuration list for PBXNativeTarget "Swordfinger的Note" */;
+			buildPhases = (
+				F2B0FE1F3043A1E9002F4C51 /* Sources */,
+				F2B0FE203043A1E9002F4C51 /* Frameworks */,
+				F2B0FE213043A1E9002F4C51 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F2B0FE253043A1E9002F4C51 /* Swordfinger的Note */,
+			);
+			name = "Swordfinger的Note";
+			packageProductDependencies = (
+			);
+			productName = "Swordfinger的Note";
+			productReference = F2B0FE233043A1E9002F4C51 /* Swordfinger的Note.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F2B0FE313043A1EA002F4C51 /* Swordfinger的NoteTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2B0FE493043A1EA002F4C51 /* Build configuration list for PBXNativeTarget "Swordfinger的NoteTests" */;
+			buildPhases = (
+				F2B0FE2E3043A1EA002F4C51 /* Sources */,
+				F2B0FE2F3043A1EA002F4C51 /* Frameworks */,
+				F2B0FE303043A1EA002F4C51 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F2B0FE343043A1EA002F4C51 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F2B0FE353043A1EA002F4C51 /* Swordfinger的NoteTests */,
+			);
+			name = "Swordfinger的NoteTests";
+			packageProductDependencies = (
+			);
+			productName = "Swordfinger的NoteTests";
+			productReference = F2B0FE323043A1EA002F4C51 /* Swordfinger的NoteTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F2B0FE3B3043A1EA002F4C51 /* Swordfinger的NoteUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F2B0FE4C3043A1EA002F4C51 /* Build configuration list for PBXNativeTarget "Swordfinger的NoteUITests" */;
+			buildPhases = (
+				F2B0FE383043A1EA002F4C51 /* Sources */,
+				F2B0FE393043A1EA002F4C51 /* Frameworks */,
+				F2B0FE3A3043A1EA002F4C51 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F2B0FE3E3043A1EA002F4C51 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				F2B0FE3F3043A1EA002F4C51 /* Swordfinger的NoteUITests */,
+			);
+			name = "Swordfinger的NoteUITests";
+			packageProductDependencies = (
+			);
+			productName = "Swordfinger的NoteUITests";
+			productReference = F2B0FE3C3043A1EA002F4C51 /* Swordfinger的NoteUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F2B0FE1B3043A1E9002F4C51 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					F2B0FE223043A1E9002F4C51 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					F2B0FE313043A1EA002F4C51 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = F2B0FE223043A1E9002F4C51;
+					};
+					F2B0FE3B3043A1EA002F4C51 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = F2B0FE223043A1E9002F4C51;
+					};
+				};
+			};
+			buildConfigurationList = F2B0FE1E3043A1E9002F4C51 /* Build configuration list for PBXProject "Swordfinger的Note" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = F2B0FE1A3043A1E9002F4C51;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F2B0FE243043A1E9002F4C51 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F2B0FE223043A1E9002F4C51 /* Swordfinger的Note */,
+				F2B0FE313043A1EA002F4C51 /* Swordfinger的NoteTests */,
+				F2B0FE3B3043A1EA002F4C51 /* Swordfinger的NoteUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F2B0FE213043A1E9002F4C51 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2B0FE303043A1EA002F4C51 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2B0FE3A3043A1EA002F4C51 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F2B0FE1F3043A1E9002F4C51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2B0FE2E3043A1EA002F4C51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F2B0FE383043A1EA002F4C51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		F2B0FE343043A1EA002F4C51 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F2B0FE223043A1E9002F4C51 /* Swordfinger的Note */;
+			targetProxy = F2B0FE333043A1EA002F4C51 /* PBXContainerItemProxy */;
+		};
+		F2B0FE3E3043A1EA002F4C51 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F2B0FE223043A1E9002F4C51 /* Swordfinger的Note */;
+			targetProxy = F2B0FE3D3043A1EA002F4C51 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		F2B0FE443043A1EA002F4C51 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F2B0FE453043A1EA002F4C51 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		F2B0FE473043A1EA002F4C51 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7QHPJT7WN3;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Swordfinger.Swordfinger-Note";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		F2B0FE483043A1EA002F4C51 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7QHPJT7WN3;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Swordfinger.Swordfinger-Note";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F2B0FE4A3043A1EA002F4C51 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Swordfinger.Swordfinger-NoteTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Swordfinger的Note.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Swordfinger的Note";
+			};
+			name = Debug;
+		};
+		F2B0FE4B3043A1EA002F4C51 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Swordfinger.Swordfinger-NoteTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Swordfinger的Note.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Swordfinger的Note";
+			};
+			name = Release;
+		};
+		F2B0FE4D3043A1EA002F4C51 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Swordfinger.Swordfinger-NoteUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Swordfinger的Note";
+			};
+			name = Debug;
+		};
+		F2B0FE4E3043A1EA002F4C51 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Swordfinger.Swordfinger-NoteUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Swordfinger的Note";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F2B0FE1E3043A1E9002F4C51 /* Build configuration list for PBXProject "Swordfinger的Note" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2B0FE443043A1EA002F4C51 /* Debug */,
+				F2B0FE453043A1EA002F4C51 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F2B0FE463043A1EA002F4C51 /* Build configuration list for PBXNativeTarget "Swordfinger的Note" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2B0FE473043A1EA002F4C51 /* Debug */,
+				F2B0FE483043A1EA002F4C51 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F2B0FE493043A1EA002F4C51 /* Build configuration list for PBXNativeTarget "Swordfinger的NoteTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2B0FE4A3043A1EA002F4C51 /* Debug */,
+				F2B0FE4B3043A1EA002F4C51 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F2B0FE4C3043A1EA002F4C51 /* Build configuration list for PBXNativeTarget "Swordfinger的NoteUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2B0FE4D3043A1EA002F4C51 /* Debug */,
+				F2B0FE4E3043A1EA002F4C51 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F2B0FE1B3043A1E9002F4C51 /* Project object */;
+}
