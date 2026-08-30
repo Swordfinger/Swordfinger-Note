@@ -148,4 +148,81 @@ struct Swordfinger_NoteTests {
         #expect(page.modifiedAt >= previousModificationDate)
     }
 
+    @Test func restoringCourseDoesNotRestoreIndividuallyTrashedPages() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Algorithms")
+        let visiblePage = NotePage(title: "Dijkstra", order: 0, course: course)
+        let individuallyTrashedPage = NotePage(title: "MST", order: 1, course: course)
+
+        course.pages = [visiblePage, individuallyTrashedPage]
+        individuallyTrashedPage.trashedAt = Date()
+        course.trashedAt = Date()
+        context.insert(course)
+        try context.save()
+
+        let courseID = course.id
+        let visiblePageID = visiblePage.id
+        let individuallyTrashedPageID = individuallyTrashedPage.id
+
+        course.trashedAt = nil
+        try context.save()
+
+        let fetchedCourse = try #require(try context.fetch(FetchDescriptor<Course>()).first)
+        let fetchedPages = fetchedCourse.pages.sorted { $0.order < $1.order }
+
+        #expect(fetchedCourse.id == courseID)
+        #expect(fetchedCourse.trashedAt == nil)
+        #expect(fetchedPages.map(\.id) == [visiblePageID, individuallyTrashedPageID])
+        #expect(fetchedPages[0].trashedAt == nil)
+        #expect(fetchedPages[1].trashedAt != nil)
+    }
+
+    @Test func restoringPagePreservesIdentityBlocksDrawingAndCode() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Computer Systems")
+        let page = NotePage(title: "Processes", order: 0, course: course)
+        let drawingData = Data([0x07, 0x08, 0x09])
+        let drawing = NoteBlock(page: page, order: 0, blockType: .drawing, drawingData: drawingData)
+        let code = NoteBlock(page: page, order: 1, blockType: .code, textContent: "printf(\"hi\\n\");", codeLanguage: .c)
+
+        course.pages = [page]
+        page.blocks = [drawing, code]
+        page.trashedAt = Date()
+        context.insert(course)
+        try context.save()
+
+        let pageID = page.id
+        let drawingID = drawing.id
+        let codeID = code.id
+
+        page.trashedAt = nil
+        try context.save()
+
+        let fetchedPage = try #require(try context.fetch(FetchDescriptor<NotePage>()).first)
+        let fetchedBlocks = fetchedPage.blocks.sorted { $0.order < $1.order }
+
+        #expect(fetchedPage.id == pageID)
+        #expect(fetchedPage.trashedAt == nil)
+        #expect(fetchedBlocks.map(\.id) == [drawingID, codeID])
+        #expect(fetchedBlocks[0].drawingData == drawingData)
+        #expect(fetchedBlocks[1].textContent == "printf(\"hi\\n\");")
+        #expect(fetchedBlocks[1].codeLanguage == .c)
+    }
+
 }

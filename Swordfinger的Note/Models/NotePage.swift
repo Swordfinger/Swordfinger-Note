@@ -14,6 +14,7 @@ final class NotePage {
     var title: String
     var createdAt: Date
     var modifiedAt: Date
+    var trashedAt: Date?
     var order: Int
     var course: Course?
 
@@ -25,6 +26,7 @@ final class NotePage {
         title: String,
         createdAt: Date = Date(),
         modifiedAt: Date = Date(),
+        trashedAt: Date? = nil,
         order: Int,
         course: Course? = nil,
         blocks: [NoteBlock] = []
@@ -33,6 +35,7 @@ final class NotePage {
         self.title = title
         self.createdAt = createdAt
         self.modifiedAt = modifiedAt
+        self.trashedAt = trashedAt
         self.order = order
         self.course = course
         self.blocks = blocks

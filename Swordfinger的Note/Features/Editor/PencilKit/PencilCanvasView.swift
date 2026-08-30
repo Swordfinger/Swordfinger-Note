@@ -14,12 +14,15 @@ import UIKit
 struct PencilCanvasView: UIViewRepresentable {
     @Binding var drawingData: Data?
     let onDrawingChanged: () -> Void
+    var isEditable = true
+    var showsToolPicker = true
 
     func makeUIView(context: Context) -> PKCanvasView {
         let canvasView = ToolPickerCanvasView()
         canvasView.delegate = context.coordinator
         canvasView.backgroundColor = .secondarySystemBackground
         canvasView.drawingPolicy = .anyInput
+        canvasView.isUserInteractionEnabled = isEditable
         canvasView.onWindowChanged = { [weak coordinator = context.coordinator, weak canvasView] in
             guard let canvasView else {
                 return
@@ -33,6 +36,7 @@ struct PencilCanvasView: UIViewRepresentable {
 
     func updateUIView(_ canvasView: PKCanvasView, context: Context) {
         context.coordinator.parent = self
+        canvasView.isUserInteractionEnabled = isEditable
         context.coordinator.configureToolPicker(for: canvasView)
         context.coordinator.apply(drawingData, to: canvasView)
     }
@@ -62,6 +66,11 @@ struct PencilCanvasView: UIViewRepresentable {
         }
 
         func configureToolPicker(for canvasView: PKCanvasView) {
+            guard parent.isEditable, parent.showsToolPicker else {
+                detachToolPicker()
+                return
+            }
+
             guard canvasView.window != nil else {
                 return
             }
@@ -144,6 +153,8 @@ struct PencilCanvasView: UIViewRepresentable {
 struct PencilCanvasView: View {
     @Binding var drawingData: Data?
     let onDrawingChanged: () -> Void
+    var isEditable = true
+    var showsToolPicker = true
 
     var body: some View {
         ContentUnavailableView("Drawing is unavailable on this platform", systemImage: "pencil.tip")
