@@ -21,6 +21,9 @@ struct ContentView: View {
     @State private var isRenamePresented = false
     @State private var trashTarget: TrashTarget?
     @State private var isTrashConfirmationPresented = false
+    @State private var permanentDeleteTarget: PermanentDeleteTarget?
+    @State private var isPermanentDeleteConfirmationPresented = false
+    @State private var isEmptyTrashConfirmationPresented = false
 
     private var selectedCourseID: PersistentIdentifier? {
         guard case .course(let courseID) = selectedMainSelection else {
@@ -222,8 +225,12 @@ struct ContentView: View {
                 ContentUnavailableView("Select a Page", systemImage: "doc.text")
             }
         }
-        .onChange(of: selectedMainSelection) { _, _ in
-            selectedPageID = nil
+        .onChange(of: selectedMainSelection) { _, newSelection in
+            if case .course = newSelection {
+                reconcileSelection()
+            } else {
+                selectedPageID = nil
+            }
         }
         .onChange(of: activeCourseIDs) { _, _ in
             reconcileSelection()
@@ -257,6 +264,34 @@ struct ContentView: View {
         } message: {
             Text(trashDialogMessage)
         }
+        .confirmationDialog(
+            permanentDeleteDialogTitle,
+            isPresented: $isPermanentDeleteConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Permanently", role: .destructive) {
+                commitPermanentDelete()
+            }
+
+            Button("Cancel", role: .cancel) {
+                resetPermanentDeleteState()
+            }
+        } message: {
+            Text(permanentDeleteDialogMessage)
+        }
+        .confirmationDialog(
+            "Permanently delete everything in Trash?",
+            isPresented: $isEmptyTrashConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button("Empty Trash", role: .destructive) {
+                emptyTrash()
+            }
+
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will permanently delete all trashed Courses, Pages, Blocks, drawings, and code. This action cannot be undone.")
+        }
     }
 
     private var trashView: some View {
@@ -264,8 +299,20 @@ struct ContentView: View {
             trashedCourses: trashedCourses,
             individuallyTrashedPages: individuallyTrashedPages,
             restoreCourse: restoreCourse,
-            restorePage: restorePage
+            restorePage: restorePage,
+            beginDeletingCoursePermanently: beginDeletingCoursePermanently,
+            beginDeletingPagePermanently: beginDeletingPagePermanently
         )
+        .toolbar {
+            ToolbarItem {
+                Button(role: .destructive) {
+                    isEmptyTrashConfirmationPresented = true
+                } label: {
+                    Label("Empty Trash", systemImage: "trash")
+                }
+                .disabled(isTrashEmpty)
+            }
+        }
     }
 
     private var columnMetrics: SplitViewColumnMetrics {
@@ -342,6 +389,34 @@ struct ContentView: View {
         }
     }
 
+    private var permanentDeleteDialogTitle: String {
+        switch permanentDeleteTarget {
+        case .course(let courseID):
+            let name = course(with: courseID)?.name ?? "Course"
+            return "Delete \"\(name)\" Permanently?"
+        case .page(let pageID):
+            let title = page(with: pageID)?.title ?? "Page"
+            return "Delete \"\(title)\" Permanently?"
+        case nil:
+            return "Delete Permanently?"
+        }
+    }
+
+    private var permanentDeleteDialogMessage: String {
+        switch permanentDeleteTarget {
+        case .course:
+            return "Deleting this Course permanently will delete all Pages and all Blocks inside the Course, including drawings and code. This action cannot be undone."
+        case .page:
+            return "Deleting this Page permanently will delete all Blocks inside it. This action cannot be undone."
+        case nil:
+            return ""
+        }
+    }
+
+    private var isTrashEmpty: Bool {
+        trashedCourses.isEmpty && individuallyTrashedPages.isEmpty
+    }
+
     private func addCourse() {
         withAnimation {
             let courseNumber = activeCourses.count + 1
@@ -394,6 +469,16 @@ struct ContentView: View {
         isTrashConfirmationPresented = true
     }
 
+    private func beginDeletingCoursePermanently(_ course: Course) {
+        permanentDeleteTarget = .course(course.persistentModelID)
+        isPermanentDeleteConfirmationPresented = true
+    }
+
+    private func beginDeletingPagePermanently(_ page: NotePage) {
+        permanentDeleteTarget = .page(page.persistentModelID)
+        isPermanentDeleteConfirmationPresented = true
+    }
+
     private func commitRename() {
         let newName = renameText.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -434,6 +519,24 @@ struct ContentView: View {
         reconcileSelection()
     }
 
+    private func commitPermanentDelete() {
+        guard let permanentDeleteTarget else {
+            resetPermanentDeleteState()
+            return
+        }
+
+        switch permanentDeleteTarget {
+        case .course(let courseID):
+            deleteCoursePermanently(courseID)
+        case .page(let pageID):
+            deletePagePermanently(pageID)
+        }
+
+        savePermanentDelete()
+        resetPermanentDeleteState()
+        reconcileSelection()
+    }
+
     private func moveCourseToTrash(_ courseID: PersistentIdentifier) {
         guard let course = course(with: courseID) else {
             return
@@ -458,6 +561,47 @@ struct ContentView: View {
         if selectedPageID == pageID {
             selectedPageID = nil
         }
+    }
+
+    private func deleteCoursePermanently(_ courseID: PersistentIdentifier) {
+        guard let course = course(with: courseID), course.trashedAt != nil else {
+            return
+        }
+
+        modelContext.delete(course)
+
+        if selectedCourseID == courseID {
+            selectedMainSelection = nil
+            selectedPageID = nil
+        }
+    }
+
+    private func deletePagePermanently(_ pageID: PersistentIdentifier) {
+        guard let page = page(with: pageID), page.trashedAt != nil else {
+            return
+        }
+
+        modelContext.delete(page)
+
+        if selectedPageID == pageID {
+            selectedPageID = nil
+        }
+    }
+
+    private func emptyTrash() {
+        let coursesToDelete = trashedCourses
+        let pagesToDelete = individuallyTrashedPages
+
+        for course in coursesToDelete {
+            modelContext.delete(course)
+        }
+
+        for page in pagesToDelete {
+            modelContext.delete(page)
+        }
+
+        savePermanentDelete()
+        reconcileSelection()
     }
 
     private func course(with courseID: PersistentIdentifier) -> Course? {
@@ -507,6 +651,14 @@ struct ContentView: View {
         }
     }
 
+    private func savePermanentDelete() {
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not save permanent delete: \(error)")
+        }
+    }
+
     private func resetRenameState() {
         renameTarget = nil
         renameText = ""
@@ -514,6 +666,10 @@ struct ContentView: View {
 
     private func resetTrashState() {
         trashTarget = nil
+    }
+
+    private func resetPermanentDeleteState() {
+        permanentDeleteTarget = nil
     }
 
     private func reconcileSelection() {
@@ -534,6 +690,8 @@ private struct TrashView: View {
     let individuallyTrashedPages: [NotePage]
     let restoreCourse: (Course) -> Void
     let restorePage: (NotePage) -> Void
+    let beginDeletingCoursePermanently: (Course) -> Void
+    let beginDeletingPagePermanently: (NotePage) -> Void
 
     var body: some View {
         List {
@@ -556,6 +714,13 @@ private struct TrashView: View {
                                 restoreCourse(course)
                             } label: {
                                 Label("Restore", systemImage: "arrow.uturn.backward")
+                            }
+                            .buttonStyle(.borderless)
+
+                            Button(role: .destructive) {
+                                beginDeletingCoursePermanently(course)
+                            } label: {
+                                Label("Delete Permanently", systemImage: "trash.slash")
                             }
                             .buttonStyle(.borderless)
                         }
@@ -586,6 +751,13 @@ private struct TrashView: View {
                                 Label("Restore", systemImage: "arrow.uturn.backward")
                             }
                             .buttonStyle(.borderless)
+
+                            Button(role: .destructive) {
+                                beginDeletingPagePermanently(page)
+                            } label: {
+                                Label("Delete Permanently", systemImage: "trash.slash")
+                            }
+                            .buttonStyle(.borderless)
                         }
                         .padding(.vertical, 4)
                     }
@@ -606,6 +778,11 @@ private enum RenameTarget {
 }
 
 private enum TrashTarget {
+    case course(PersistentIdentifier)
+    case page(PersistentIdentifier)
+}
+
+private enum PermanentDeleteTarget {
     case course(PersistentIdentifier)
     case page(PersistentIdentifier)
 }

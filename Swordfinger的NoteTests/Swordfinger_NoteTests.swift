@@ -225,4 +225,379 @@ struct Swordfinger_NoteTests {
         #expect(fetchedBlocks[1].codeLanguage == .c)
     }
 
+    @Test func trashFilteringAndRestoreSemanticsMatchActiveNavigation() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Course A")
+        let page1 = NotePage(title: "Page 1", order: 0, course: course)
+        let page2 = NotePage(title: "Page 2", order: 1, course: course)
+        let page1Block = NoteBlock(page: page1, order: 0, blockType: .paragraph, textContent: "Page 1 block")
+        let page2Block = NoteBlock(page: page2, order: 0, blockType: .paragraph, textContent: "Page 2 block")
+
+        course.pages = [page1, page2]
+        page1.blocks = [page1Block]
+        page2.blocks = [page2Block]
+        context.insert(course)
+        try context.save()
+
+        let courseID = course.id
+        let page1ID = page1.id
+        let page2ID = page2.id
+        let page1BlockID = page1Block.id
+
+        page1.trashedAt = Date()
+        try context.save()
+
+        var courses = try context.fetch(FetchDescriptor<Course>())
+        var activeCourses = courses.filter { $0.trashedAt == nil }
+        var activePages = activeCourses.flatMap(\.pages).filter { $0.trashedAt == nil && $0.course?.trashedAt == nil }
+        var individuallyTrashedPages = activeCourses.flatMap(\.pages).filter { $0.trashedAt != nil }
+
+        #expect(activeCourses.map(\.id) == [courseID])
+        #expect(activePages.map(\.id) == [page2ID])
+        #expect(individuallyTrashedPages.map(\.id) == [page1ID])
+
+        page1.trashedAt = nil
+        try context.save()
+
+        courses = try context.fetch(FetchDescriptor<Course>())
+        activeCourses = courses.filter { $0.trashedAt == nil }
+        activePages = activeCourses.flatMap(\.pages).filter { $0.trashedAt == nil && $0.course?.trashedAt == nil }
+
+        #expect(activePages.map(\.id).sorted { $0.uuidString < $1.uuidString } == [page1ID, page2ID].sorted { $0.uuidString < $1.uuidString })
+        #expect(page1.id == page1ID)
+        #expect(page1.blocks.map(\.id) == [page1BlockID])
+
+        course.trashedAt = Date()
+        try context.save()
+
+        courses = try context.fetch(FetchDescriptor<Course>())
+        activeCourses = courses.filter { $0.trashedAt == nil }
+        activePages = activeCourses.flatMap(\.pages).filter { $0.trashedAt == nil && $0.course?.trashedAt == nil }
+        let trashedCourses = courses.filter { $0.trashedAt != nil }
+
+        #expect(activeCourses.isEmpty)
+        #expect(activePages.isEmpty)
+        #expect(trashedCourses.map(\.id) == [courseID])
+        #expect(page1.trashedAt == nil)
+        #expect(page2.trashedAt == nil)
+
+        course.trashedAt = nil
+        try context.save()
+
+        courses = try context.fetch(FetchDescriptor<Course>())
+        activeCourses = courses.filter { $0.trashedAt == nil }
+        activePages = activeCourses.flatMap(\.pages).filter { $0.trashedAt == nil && $0.course?.trashedAt == nil }
+
+        #expect(activeCourses.map(\.id) == [courseID])
+        #expect(activePages.map(\.id).sorted { $0.uuidString < $1.uuidString } == [page1ID, page2ID].sorted { $0.uuidString < $1.uuidString })
+
+        page2.trashedAt = Date()
+        course.trashedAt = Date()
+        try context.save()
+
+        course.trashedAt = nil
+        try context.save()
+
+        courses = try context.fetch(FetchDescriptor<Course>())
+        activeCourses = courses.filter { $0.trashedAt == nil }
+        activePages = activeCourses.flatMap(\.pages).filter { $0.trashedAt == nil && $0.course?.trashedAt == nil }
+        individuallyTrashedPages = activeCourses.flatMap(\.pages).filter { $0.trashedAt != nil }
+
+        #expect(activeCourses.map(\.id) == [courseID])
+        #expect(activePages.map(\.id) == [page1ID])
+        #expect(individuallyTrashedPages.map(\.id) == [page2ID])
+    }
+
+    @Test func trashRestorePreservesDrawingCodeAndBlockOrder() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Course A")
+        let page = NotePage(title: "Page 1", order: 0, course: course)
+        let drawingData = Data([0x10, 0x11, 0x12])
+        let paragraph = NoteBlock(page: page, order: 0, blockType: .paragraph, textContent: "Intro")
+        let drawing = NoteBlock(page: page, order: 1, blockType: .drawing, drawingData: drawingData)
+        let code = NoteBlock(page: page, order: 2, blockType: .code, textContent: "for i in range(3):\n    print(i)", codeLanguage: .python)
+
+        course.pages = [page]
+        page.blocks = [paragraph, drawing, code]
+        context.insert(course)
+        try context.save()
+
+        page.moveBlocks(from: IndexSet(integer: 2), to: 0)
+        try context.save()
+
+        let expectedBlockIDs = [code.id, paragraph.id, drawing.id]
+        let expectedOrders = [0, 1, 2]
+
+        page.trashedAt = Date()
+        try context.save()
+
+        page.trashedAt = nil
+        try context.save()
+
+        var fetchedPage = try #require(try context.fetch(FetchDescriptor<NotePage>()).first)
+        var blocks = fetchedPage.blocks.sorted { $0.order < $1.order }
+
+        #expect(blocks.map(\.id) == expectedBlockIDs)
+        #expect(blocks.map(\.order) == expectedOrders)
+        #expect(blocks[0].textContent == "for i in range(3):\n    print(i)")
+        #expect(blocks[0].codeLanguage == .python)
+        #expect(blocks[2].drawingData == drawingData)
+
+        course.trashedAt = Date()
+        try context.save()
+
+        course.trashedAt = nil
+        try context.save()
+
+        fetchedPage = try #require(try context.fetch(FetchDescriptor<NotePage>()).first)
+        blocks = fetchedPage.blocks.sorted { $0.order < $1.order }
+
+        #expect(fetchedPage.trashedAt == nil)
+        #expect(blocks.map(\.id) == expectedBlockIDs)
+        #expect(blocks.map(\.order) == expectedOrders)
+        #expect(blocks[0].textContent == "for i in range(3):\n    print(i)")
+        #expect(blocks[0].codeLanguage == .python)
+        #expect(blocks[2].drawingData == drawingData)
+    }
+
+    @Test func renamingCoursePreservesIdentityPagesAndRelationships() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Old Name")
+        let page = NotePage(title: "Lecture", order: 0, course: course)
+
+        course.pages = [page]
+        context.insert(course)
+        try context.save()
+
+        let courseID = course.id
+        let pageID = page.id
+
+        course.name = "New Name"
+        try context.save()
+
+        let fetchedCourse = try #require(try context.fetch(FetchDescriptor<Course>()).first)
+        let fetchedPage = try #require(fetchedCourse.pages.first)
+
+        #expect(fetchedCourse.id == courseID)
+        #expect(fetchedCourse.name == "New Name")
+        #expect(fetchedPage.id == pageID)
+        #expect(fetchedPage.course === fetchedCourse)
+    }
+
+    @Test func renamingPagePreservesIdentityBlocksDrawingCodeAndOrder() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Systems")
+        let page = NotePage(title: "Old Page", order: 0, course: course)
+        let drawingData = Data([0x0B, 0x0C])
+        let drawing = NoteBlock(page: page, order: 0, blockType: .drawing, drawingData: drawingData)
+        let code = NoteBlock(page: page, order: 1, blockType: .code, textContent: "let x = 1", codeLanguage: .swift)
+
+        course.pages = [page]
+        page.blocks = [drawing, code]
+        context.insert(course)
+        try context.save()
+
+        let pageID = page.id
+        let previousModifiedAt = page.modifiedAt
+
+        page.title = "New Page"
+        page.modifiedAt = Date()
+        try context.save()
+
+        let fetchedPage = try #require(try context.fetch(FetchDescriptor<NotePage>()).first)
+        let fetchedBlocks = fetchedPage.blocks.sorted { $0.order < $1.order }
+
+        #expect(fetchedPage.id == pageID)
+        #expect(fetchedPage.title == "New Page")
+        #expect(fetchedPage.modifiedAt >= previousModifiedAt)
+        #expect(fetchedBlocks.map(\.order) == [0, 1])
+        #expect(fetchedBlocks[0].drawingData == drawingData)
+        #expect(fetchedBlocks[1].textContent == "let x = 1")
+        #expect(fetchedBlocks[1].codeLanguage == .swift)
+    }
+
+    @Test func permanentlyDeletingTrashedCourseCascadesPagesAndBlocksOnlyForThatCourse() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let trashedCourse = Course(name: "Algorithms", trashedAt: Date())
+        let trashedCoursePage = NotePage(title: "Graphs", order: 0, course: trashedCourse)
+        let drawing = NoteBlock(page: trashedCoursePage, order: 0, blockType: .drawing, drawingData: Data([0x01]))
+        let code = NoteBlock(page: trashedCoursePage, order: 1, blockType: .code, textContent: "print(\"graph\")", codeLanguage: .python)
+
+        let otherCourse = Course(name: "Systems")
+        let otherPage = NotePage(title: "Processes", order: 0, course: otherCourse)
+        let otherBlock = NoteBlock(page: otherPage, order: 0, blockType: .paragraph, textContent: "fork")
+
+        trashedCourse.pages = [trashedCoursePage]
+        trashedCoursePage.blocks = [drawing, code]
+        otherCourse.pages = [otherPage]
+        otherPage.blocks = [otherBlock]
+        context.insert(trashedCourse)
+        context.insert(otherCourse)
+        try context.save()
+
+        context.delete(trashedCourse)
+        try context.save()
+
+        let courses = try context.fetch(FetchDescriptor<Course>())
+        let pages = try context.fetch(FetchDescriptor<NotePage>())
+        let blocks = try context.fetch(FetchDescriptor<NoteBlock>())
+
+        #expect(courses.map(\.id) == [otherCourse.id])
+        #expect(pages.map(\.id) == [otherPage.id])
+        #expect(blocks.map(\.id) == [otherBlock.id])
+        #expect(blocks.first?.textContent == "fork")
+    }
+
+    @Test func permanentlyDeletingTrashedPageCascadesBlocksAndPreservesCourseAndOtherPages() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let course = Course(name: "Computer Systems")
+        let trashedPage = NotePage(title: "Memory", trashedAt: Date(), order: 0, course: course)
+        let drawing = NoteBlock(page: trashedPage, order: 0, blockType: .drawing, drawingData: Data([0x02]))
+        let code = NoteBlock(page: trashedPage, order: 1, blockType: .code, textContent: "int *p;", codeLanguage: .c)
+        let otherPage = NotePage(title: "Processes", order: 1, course: course)
+        let otherBlock = NoteBlock(page: otherPage, order: 0, blockType: .heading, textContent: "Scheduling")
+
+        course.pages = [trashedPage, otherPage]
+        trashedPage.blocks = [drawing, code]
+        otherPage.blocks = [otherBlock]
+        context.insert(course)
+        try context.save()
+
+        context.delete(trashedPage)
+        try context.save()
+
+        let courses = try context.fetch(FetchDescriptor<Course>())
+        let pages = try context.fetch(FetchDescriptor<NotePage>())
+        let blocks = try context.fetch(FetchDescriptor<NoteBlock>())
+
+        #expect(courses.map(\.id) == [course.id])
+        #expect(pages.map(\.id) == [otherPage.id])
+        #expect(blocks.map(\.id) == [otherBlock.id])
+        #expect(blocks.first?.textContent == "Scheduling")
+    }
+
+    @Test func emptyTrashDeletesTopLevelTrashWithoutDoubleDeletingChildPages() async throws {
+        let schema = Schema([
+            Course.self,
+            NotePage.self,
+            NoteBlock.self,
+        ])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let context = ModelContext(container)
+
+        let trashedCourse = Course(name: "Algorithms", trashedAt: Date())
+        let pageInsideTrashedCourse = NotePage(title: "Shortest Paths", trashedAt: Date(), order: 0, course: trashedCourse)
+        let blockInsideTrashedCourse = NoteBlock(page: pageInsideTrashedCourse, order: 0, blockType: .code, textContent: "dijkstra()", codeLanguage: .python)
+
+        let activeCourse = Course(name: "Systems")
+        let activePage = NotePage(title: "Processes", order: 0, course: activeCourse)
+        let activeBlock = NoteBlock(page: activePage, order: 0, blockType: .paragraph, textContent: "scheduler")
+        let individuallyTrashedPage = NotePage(title: "Memory", trashedAt: Date(), order: 1, course: activeCourse)
+        let individuallyTrashedDrawing = NoteBlock(page: individuallyTrashedPage, order: 0, blockType: .drawing, drawingData: Data([0x0A]))
+
+        let untouchedCourse = Course(name: "Databases")
+        let untouchedPage = NotePage(title: "Indexes", order: 0, course: untouchedCourse)
+        let untouchedBlock = NoteBlock(page: untouchedPage, order: 0, blockType: .code, textContent: "CREATE INDEX", codeLanguage: .plainText)
+
+        trashedCourse.pages = [pageInsideTrashedCourse]
+        pageInsideTrashedCourse.blocks = [blockInsideTrashedCourse]
+        activeCourse.pages = [activePage, individuallyTrashedPage]
+        activePage.blocks = [activeBlock]
+        individuallyTrashedPage.blocks = [individuallyTrashedDrawing]
+        untouchedCourse.pages = [untouchedPage]
+        untouchedPage.blocks = [untouchedBlock]
+
+        context.insert(trashedCourse)
+        context.insert(activeCourse)
+        context.insert(untouchedCourse)
+        try context.save()
+
+        let allCourses = try context.fetch(FetchDescriptor<Course>())
+        let coursesToDelete = allCourses.filter { $0.trashedAt != nil }
+        let pagesToDelete = allCourses
+            .filter { $0.trashedAt == nil }
+            .flatMap(\.pages)
+            .filter { $0.trashedAt != nil }
+
+        #expect(coursesToDelete.map(\.id) == [trashedCourse.id])
+        #expect(pagesToDelete.map(\.id) == [individuallyTrashedPage.id])
+        #expect(!pagesToDelete.map(\.id).contains(pageInsideTrashedCourse.id))
+
+        for course in coursesToDelete {
+            context.delete(course)
+        }
+
+        for page in pagesToDelete {
+            context.delete(page)
+        }
+
+        try context.save()
+
+        let remainingCourses = try context.fetch(FetchDescriptor<Course>())
+        let remainingPages = try context.fetch(FetchDescriptor<NotePage>())
+        let remainingBlocks = try context.fetch(FetchDescriptor<NoteBlock>())
+
+        let remainingCourseIDs = remainingCourses.map(\.id).sorted { $0.uuidString < $1.uuidString }
+        let expectedCourseIDs = [activeCourse.id, untouchedCourse.id].sorted { $0.uuidString < $1.uuidString }
+        let remainingPageIDs = remainingPages.map(\.id).sorted { $0.uuidString < $1.uuidString }
+        let expectedPageIDs = [activePage.id, untouchedPage.id].sorted { $0.uuidString < $1.uuidString }
+        let remainingBlockIDs = remainingBlocks.map(\.id).sorted { $0.uuidString < $1.uuidString }
+        let expectedBlockIDs = [activeBlock.id, untouchedBlock.id].sorted { $0.uuidString < $1.uuidString }
+
+        #expect(remainingCourseIDs == expectedCourseIDs)
+        #expect(remainingPageIDs == expectedPageIDs)
+        #expect(remainingBlockIDs == expectedBlockIDs)
+        #expect(remainingBlocks.contains { $0.textContent == "scheduler" })
+        #expect(remainingBlocks.contains { $0.textContent == "CREATE INDEX" })
+    }
+
 }
