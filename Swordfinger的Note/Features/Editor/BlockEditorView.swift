@@ -64,7 +64,15 @@ struct BlockEditorView: View {
                         Label("Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
 
-                    Button(action: addDrawingBlock) {
+                    Menu {
+                        ForEach(DrawingCanvasPreset.newDrawingChoices, id: \.self) { preset in
+                            Button {
+                                addDrawingBlock(preset: preset)
+                            } label: {
+                                Text(preset.displayName)
+                            }
+                        }
+                    } label: {
                         Label("Drawing", systemImage: "pencil.tip")
                     }
                 } label: {
@@ -99,19 +107,20 @@ struct BlockEditorView: View {
         addBlock(type: .paragraph)
     }
 
-    private func addDrawingBlock() {
-        addBlock(type: .drawing)
+    private func addDrawingBlock(preset: DrawingCanvasPreset) {
+        addBlock(type: .drawing, drawingCanvasPreset: preset)
     }
 
     private func addCodeBlock() {
         addBlock(type: .code)
     }
 
-    private func addBlock(type: NoteBlockType) {
+    private func addBlock(type: NoteBlockType, drawingCanvasPreset: DrawingCanvasPreset? = nil) {
         let block = NoteBlock(
             page: page,
             order: nextBlockOrder,
-            blockType: type
+            blockType: type,
+            drawingCanvasPreset: drawingCanvasPreset
         )
 
         page.blocks.append(block)

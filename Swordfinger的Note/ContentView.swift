@@ -221,6 +221,13 @@ struct ContentView: View {
                     ideal: columnMetrics.detail.ideal,
                     max: columnMetrics.detail.maximum
                 )
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: togglePageFocus) {
+                            Label(pageFocusButtonTitle, systemImage: pageFocusButtonSystemImage)
+                        }
+                    }
+                }
             } else {
                 ContentUnavailableView("Select a Page", systemImage: "doc.text")
             }
@@ -316,6 +323,7 @@ struct ContentView: View {
     }
 
     private var columnMetrics: SplitViewColumnMetrics {
+        #if os(macOS)
         if horizontalSizeClass == .compact {
             return SplitViewColumnMetrics(
                 sidebar: ColumnWidth(minimum: 180, ideal: 220, maximum: 280),
@@ -329,9 +337,25 @@ struct ContentView: View {
             content: ColumnWidth(minimum: 240, ideal: 300, maximum: 380),
             detail: ColumnWidth(minimum: 420, ideal: 840, maximum: 1600)
         )
+        #else
+        if horizontalSizeClass == .compact {
+            return SplitViewColumnMetrics(
+                sidebar: ColumnWidth(minimum: 170, ideal: 190, maximum: 230),
+                content: ColumnWidth(minimum: 180, ideal: 210, maximum: 250),
+                detail: ColumnWidth(minimum: 320, ideal: 680, maximum: 1200)
+            )
+        }
+
+        return SplitViewColumnMetrics(
+            sidebar: ColumnWidth(minimum: 180, ideal: 210, maximum: 250),
+            content: ColumnWidth(minimum: 200, ideal: 230, maximum: 280),
+            detail: ColumnWidth(minimum: 360, ideal: 920, maximum: 1800)
+        )
+        #endif
     }
 
     private func detailPadding(for width: CGFloat) -> CGFloat {
+        #if os(macOS)
         if width < 500 {
             return 12
         }
@@ -341,6 +365,13 @@ struct ContentView: View {
         }
 
         return 24
+        #else
+        if width < 500 {
+            return 12
+        }
+
+        return 16
+        #endif
     }
 
     private var renameDialogTitle: String {
@@ -676,12 +707,46 @@ struct ContentView: View {
         if let selectedCourseID, !activeCourseIDs.contains(selectedCourseID) {
             selectedMainSelection = nil
             selectedPageID = nil
+            exitPageFocus()
             return
         }
 
         if let selectedPageID, !activePageIDs.contains(selectedPageID) {
             self.selectedPageID = nil
+            exitPageFocus()
         }
+    }
+
+    private var isPageFocused: Bool {
+        columnVisibility == .detailOnly
+    }
+
+    private var pageFocusButtonTitle: String {
+        isPageFocused ? "Show Navigation" : "Focus"
+    }
+
+    private var pageFocusButtonSystemImage: String {
+        isPageFocused ? "sidebar.leading" : "arrow.up.left.and.arrow.down.right"
+    }
+
+    private func togglePageFocus() {
+        if isPageFocused {
+            exitPageFocus()
+        } else {
+            enterPageFocus()
+        }
+    }
+
+    private func enterPageFocus() {
+        guard selectedPage != nil else {
+            return
+        }
+
+        columnVisibility = .detailOnly
+    }
+
+    private func exitPageFocus() {
+        columnVisibility = .all
     }
 }
 

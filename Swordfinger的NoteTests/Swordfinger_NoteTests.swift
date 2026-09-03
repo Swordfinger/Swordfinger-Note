@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import CoreGraphics
 import SwiftData
 @testable import Swordfinger的Note
 
@@ -66,6 +67,104 @@ struct Swordfinger_NoteTests {
         #expect(courses.first?.pages.first?.title == "Sorting")
         #expect(courses.first?.pages.first?.blocks.first?.blockType == .code)
         #expect(courses.first?.pages.first?.blocks.first?.codeLanguage == .plainText)
+    }
+
+    @Test func drawingCanvasPresetFallbacksAreMigrationSafe() async throws {
+        let drawingData = Data([0x20, 0x21, 0x22])
+        let block = NoteBlock(order: 0, blockType: .drawing, drawingData: drawingData)
+
+        #expect(block.drawingCanvasPresetRawValue == nil)
+        #expect(block.drawingCanvasPreset == .legacySquare)
+        #expect(block.drawingData == drawingData)
+
+        block.drawingCanvasPresetRawValue = "unknown-preset"
+
+        #expect(block.drawingCanvasPreset == .legacySquare)
+        #expect(block.drawingData == drawingData)
+    }
+
+    @Test func drawingCanvasPresetRawValuesRoundTrip() async throws {
+        let sketch = NoteBlock(order: 0, blockType: .drawing, drawingCanvasPreset: .sketch)
+        let sideNote = NoteBlock(order: 1, blockType: .drawing, drawingCanvasPreset: .sideNote)
+        let fullNote = NoteBlock(order: 2, blockType: .drawing, drawingCanvasPreset: .fullNote)
+
+        #expect(sketch.drawingCanvasPresetRawValue == DrawingCanvasPreset.sketch.rawValue)
+        #expect(sketch.drawingCanvasPreset == .sketch)
+        #expect(sideNote.drawingCanvasPresetRawValue == DrawingCanvasPreset.sideNote.rawValue)
+        #expect(sideNote.drawingCanvasPreset == .sideNote)
+        #expect(fullNote.drawingCanvasPresetRawValue == DrawingCanvasPreset.fullNote.rawValue)
+        #expect(fullNote.drawingCanvasPreset == .fullNote)
+    }
+
+    @Test func drawingCanvasPresetGeometryIsStable() async throws {
+        #expect(DrawingCanvasPreset.legacySquare.logicalSize == CGSize(width: 1600, height: 1600))
+        #expect(DrawingCanvasPreset.sketch.logicalSize == CGSize(width: 1000, height: 700))
+        #expect(DrawingCanvasPreset.sideNote.logicalSize == CGSize(width: 1200, height: 1200))
+        #expect(DrawingCanvasPreset.fullNote.logicalSize == CGSize(width: 1600, height: 2200))
+
+        #expect(DrawingCanvasPreset.legacySquare.logicalPageRect == CGRect(x: 0, y: 0, width: 1600, height: 1600))
+        #expect(DrawingCanvasPreset.sketch.logicalPageRect == CGRect(x: 0, y: 0, width: 1000, height: 700))
+        #expect(DrawingCanvasPreset.sideNote.logicalPageRect == CGRect(x: 0, y: 0, width: 1200, height: 1200))
+        #expect(DrawingCanvasPreset.fullNote.logicalPageRect == CGRect(x: 0, y: 0, width: 1600, height: 2200))
+    }
+
+    @Test func drawingCanvasPresetAspectRatiosAndEmbeddedHeightsAreDerivedFromLogicalSize() async throws {
+        #expect(DrawingCanvasPreset.legacySquare.aspectRatio == 1)
+        #expect(DrawingCanvasPreset.sideNote.aspectRatio == 1)
+        #expect(abs(DrawingCanvasPreset.sketch.aspectRatio - (1000.0 / 700.0)) < 0.0001)
+        #expect(abs(DrawingCanvasPreset.fullNote.aspectRatio - (1600.0 / 2200.0)) < 0.0001)
+
+        #expect(DrawingCanvasPreset.legacySquare.embeddedHeight(forWidth: 320) == 320)
+        #expect(DrawingCanvasPreset.sideNote.embeddedHeight(forWidth: 360) == 360)
+        #expect(abs(DrawingCanvasPreset.sketch.embeddedHeight(forWidth: 1000) - 700) < 0.0001)
+        #expect(abs(DrawingCanvasPreset.fullNote.embeddedHeight(forWidth: 1600) - 2200) < 0.0001)
+    }
+
+    @Test func drawingPaperStyleFallbacksAreMigrationSafe() async throws {
+        let drawingData = Data([0x30, 0x31, 0x32])
+        let block = NoteBlock(order: 0, blockType: .drawing, drawingData: drawingData)
+
+        #expect(block.drawingPaperStyleRawValue == nil)
+        #expect(block.drawingPaperStyle == .blank)
+        #expect(block.drawingData == drawingData)
+
+        block.drawingPaperStyleRawValue = "unknown-paper"
+
+        #expect(block.drawingPaperStyle == .blank)
+        #expect(block.drawingData == drawingData)
+    }
+
+    @Test func drawingPaperStyleRawValuesRoundTrip() async throws {
+        let blank = NoteBlock(order: 0, blockType: .drawing, drawingPaperStyle: .blank)
+        let lined = NoteBlock(order: 1, blockType: .drawing, drawingPaperStyle: .lined)
+        let grid = NoteBlock(order: 2, blockType: .drawing, drawingPaperStyle: .grid)
+        let dotted = NoteBlock(order: 3, blockType: .drawing, drawingPaperStyle: .dotted)
+
+        #expect(blank.drawingPaperStyleRawValue == DrawingPaperStyle.blank.rawValue)
+        #expect(blank.drawingPaperStyle == .blank)
+        #expect(lined.drawingPaperStyleRawValue == DrawingPaperStyle.lined.rawValue)
+        #expect(lined.drawingPaperStyle == .lined)
+        #expect(grid.drawingPaperStyleRawValue == DrawingPaperStyle.grid.rawValue)
+        #expect(grid.drawingPaperStyle == .grid)
+        #expect(dotted.drawingPaperStyleRawValue == DrawingPaperStyle.dotted.rawValue)
+        #expect(dotted.drawingPaperStyle == .dotted)
+    }
+
+    @Test func changingDrawingPaperStyleDoesNotModifyDrawingData() async throws {
+        let drawingData = Data([0x40, 0x41, 0x42])
+        let block = NoteBlock(order: 0, blockType: .drawing, drawingData: drawingData)
+
+        block.drawingPaperStyle = .lined
+        #expect(block.drawingData == drawingData)
+
+        block.drawingPaperStyle = .grid
+        #expect(block.drawingData == drawingData)
+
+        block.drawingPaperStyle = .dotted
+        #expect(block.drawingData == drawingData)
+
+        block.drawingPaperStyle = .blank
+        #expect(block.drawingData == drawingData)
     }
 
     @Test func deletingTextAndDrawingBlocksPreservesPageAndNormalizesOrder() async throws {
