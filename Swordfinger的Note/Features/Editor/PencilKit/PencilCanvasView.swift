@@ -27,7 +27,7 @@ struct PencilCanvasView: UIViewRepresentable {
         canvasView.drawingPolicy = effectiveDrawingPolicy
         canvasView.isUserInteractionEnabled = isEditable
         applyLogicalPageSize(to: canvasView)
-        applyPaperBackground(to: canvasView)
+        applyDrawingPageConfiguration(to: canvasView)
         canvasView.onWindowChanged = { [weak coordinator = context.coordinator, weak canvasView] in
             guard let canvasView else {
                 return
@@ -44,7 +44,7 @@ struct PencilCanvasView: UIViewRepresentable {
         canvasView.isUserInteractionEnabled = isEditable
         canvasView.drawingPolicy = effectiveDrawingPolicy
         applyLogicalPageSize(to: canvasView)
-        applyPaperBackground(to: canvasView)
+        applyDrawingPageConfiguration(to: canvasView)
         context.coordinator.configureToolPicker(for: canvasView)
         context.coordinator.apply(drawingData, to: canvasView)
     }
@@ -61,15 +61,15 @@ struct PencilCanvasView: UIViewRepresentable {
         canvasView.contentSize = logicalPageSize
     }
 
-    private func applyPaperBackground(to canvasView: PKCanvasView) {
-        guard let canvasView = canvasView as? ToolPickerCanvasView else {
+    private func applyDrawingPageConfiguration(to canvasView: PKCanvasView) {
+        guard let canvasView = canvasView as? ToolPickerCanvasView,
+              let logicalPageSize else {
             return
         }
 
-        let pageSize = logicalPageSize ?? canvasView.bounds.size
-        canvasView.configurePaperBackground(
+        canvasView.configureDrawingPage(
             style: paperStyle,
-            logicalPageSize: pageSize
+            logicalPageSize: logicalPageSize
         )
     }
 
@@ -179,19 +179,117 @@ struct PencilCanvasView: UIViewRepresentable {
     final class ToolPickerCanvasView: PKCanvasView {
         var onWindowChanged: (() -> Void)?
         private let paperBackgroundView = PaperBackgroundUIView()
+        private var logicalPageSize: CGSize?
+        private var lastFitWidthBoundsWidth: CGFloat = 0
+        private var lastFitWidthLogicalPageSize: CGSize = .zero
+        private let relativeMaximumZoomScale: CGFloat = 4
+        private let fitWidthZoomTolerance: CGFloat = 0.01
 
         override func didMoveToWindow() {
             super.didMoveToWindow()
             onWindowChanged?()
         }
 
-        func configurePaperBackground(style: DrawingPaperStyle, logicalPageSize: CGSize) {
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            recalibrateFitWidthIfNeeded()
+            updateScrollBehavior()
+            layoutPaperBackground()
+
+            if isAtFitWidth {
+                normalizeHorizontalOffset()
+            }
+        }
+
+        func configureDrawingPage(style: DrawingPaperStyle, logicalPageSize: CGSize) {
+            self.logicalPageSize = logicalPageSize
+            contentSize = logicalPageSize
+            isDirectionalLockEnabled = true
+
             if paperBackgroundView.superview !== self {
                 insertSubview(paperBackgroundView, at: 0)
             }
 
             paperBackgroundView.style = style
-            paperBackgroundView.frame = CGRect(origin: .zero, size: logicalPageSize)
+            setNeedsLayout()
+        }
+
+        private func recalibrateFitWidthIfNeeded() {
+            guard let logicalPageSize,
+                  logicalPageSize.width > 0,
+                  bounds.width > 0 else {
+                return
+            }
+
+            let boundsWidthChanged = abs(bounds.width - lastFitWidthBoundsWidth) > 0.5
+            let logicalPageSizeChanged = logicalPageSize != lastFitWidthLogicalPageSize
+
+            guard boundsWidthChanged || logicalPageSizeChanged else {
+                return
+            }
+
+            let fitWidthScale = bounds.width / logicalPageSize.width
+            guard fitWidthScale.isFinite, fitWidthScale > 0 else {
+                return
+            }
+
+            minimumZoomScale = fitWidthScale
+            maximumZoomScale = fitWidthScale * relativeMaximumZoomScale
+
+            lastFitWidthBoundsWidth = bounds.width
+            lastFitWidthLogicalPageSize = logicalPageSize
+
+            setZoomScale(fitWidthScale, animated: false)
+            normalizeHorizontalOffset()
+        }
+
+        private func updateScrollBehavior() {
+            guard let logicalPageSize else {
+                return
+            }
+
+            alwaysBounceHorizontal = false
+            alwaysBounceVertical = scaledPageHeight(logicalPageSize) > bounds.height + 0.5
+        }
+
+        private var isAtFitWidth: Bool {
+            abs(zoomScale - minimumZoomScale) <= fitWidthZoomTolerance
+        }
+
+        private func scaledPageHeight(_ logicalPageSize: CGSize) -> CGFloat {
+            logicalPageSize.height * zoomScale
+        }
+
+        private func normalizeHorizontalOffset() {
+            let minimumOffsetX = -adjustedContentInset.left
+            let maximumOffsetX = max(
+                minimumOffsetX,
+                contentSize.width - bounds.width + adjustedContentInset.right
+            )
+
+            var normalizedOffset = contentOffset
+            normalizedOffset.x = min(max(normalizedOffset.x, minimumOffsetX), maximumOffsetX)
+
+            if abs(normalizedOffset.x - contentOffset.x) > 0.5 {
+                setContentOffset(normalizedOffset, animated: false)
+            }
+        }
+
+        private func layoutPaperBackground() {
+            guard let logicalPageSize else {
+                return
+            }
+
+            if paperBackgroundView.superview !== self {
+                insertSubview(paperBackgroundView, at: 0)
+            }
+
+            paperBackgroundView.bounds = CGRect(origin: .zero, size: logicalPageSize)
+            paperBackgroundView.transform = CGAffineTransform(scaleX: zoomScale, y: zoomScale)
+            paperBackgroundView.center = CGPoint(
+                x: logicalPageSize.width * zoomScale / 2,
+                y: logicalPageSize.height * zoomScale / 2
+            )
             paperBackgroundView.setNeedsDisplay()
         }
     }

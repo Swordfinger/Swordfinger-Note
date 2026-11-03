@@ -16,6 +16,8 @@ import UIKit
 struct DrawingBlockView: View {
     @Bindable var block: NoteBlock
     let onDrawingChanged: () -> Void
+    var pendingFocusedBlockID: UUID?
+    var onPendingFocusConsumed: () -> Void = {}
 
     @State private var isFocused = false
 
@@ -46,6 +48,10 @@ struct DrawingBlockView: View {
             }
         }
         .buttonStyle(.plain)
+        .onAppear(perform: focusIfRequested)
+        .onChange(of: pendingFocusedBlockID) {
+            focusIfRequested()
+        }
         #if os(macOS)
         .sheet(isPresented: $isFocused) {
             FocusedDrawingView(block: block, onDrawingChanged: onDrawingChanged)
@@ -56,6 +62,15 @@ struct DrawingBlockView: View {
             FocusedDrawingView(block: block, onDrawingChanged: onDrawingChanged)
         }
         #endif
+    }
+
+    private func focusIfRequested() {
+        guard pendingFocusedBlockID == block.id else {
+            return
+        }
+
+        isFocused = true
+        onPendingFocusConsumed()
     }
 }
 

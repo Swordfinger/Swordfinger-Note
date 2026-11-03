@@ -167,6 +167,35 @@ struct Swordfinger_NoteTests {
         #expect(block.drawingData == drawingData)
     }
 
+    @Test func configuredDrawingBlockCreationPreservesOrderAndMetadata() async throws {
+        let page = NotePage(title: "Lecture", order: 0)
+        let paragraph = NoteBlock(page: page, order: 0, blockType: .paragraph, textContent: "Before drawing")
+        let code = NoteBlock(page: page, order: 1, blockType: .code, textContent: "print(1)", codeLanguage: .python)
+        let drawing = NoteBlock(
+            page: page,
+            order: 2,
+            blockType: .drawing,
+            drawingCanvasPreset: .fullNote,
+            drawingPaperStyle: .lined
+        )
+
+        page.blocks = [paragraph, code]
+        page.blocks.append(drawing)
+
+        let blocks = page.blocks.sorted { $0.order < $1.order }
+
+        #expect(DrawingCanvasPreset.newDrawingChoices == [.sketch, .sideNote, .fullNote])
+        #expect(!DrawingCanvasPreset.newDrawingChoices.contains(.legacySquare))
+        #expect(blocks.map(\.blockType) == [.paragraph, .code, .drawing])
+        #expect(blocks.map(\.order) == [0, 1, 2])
+        #expect(blocks[0].textContent == "Before drawing")
+        #expect(blocks[1].textContent == "print(1)")
+        #expect(blocks[1].codeLanguage == .python)
+        #expect(blocks[2].drawingCanvasPreset == .fullNote)
+        #expect(blocks[2].drawingPaperStyle == .lined)
+        #expect(blocks[2].drawingData == nil)
+    }
+
     @Test func deletingTextAndDrawingBlocksPreservesPageAndNormalizesOrder() async throws {
         let schema = Schema([
             Course.self,

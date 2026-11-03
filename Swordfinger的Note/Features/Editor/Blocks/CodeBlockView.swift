@@ -8,6 +8,12 @@
 import SwiftUI
 import SwiftData
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 struct CodeBlockView: View {
     @Bindable var block: NoteBlock
     let onCodeChanged: () -> Void
@@ -34,16 +40,14 @@ struct CodeBlockView: View {
 
             GeometryReader { geometry in
                 ScrollView(.horizontal) {
-                    TextEditor(text: $block.textContent)
-                        .font(.system(.body, design: .monospaced))
-                        .scrollContentBackground(.hidden)
-                        .frame(minWidth: max(geometry.size.width, 520), minHeight: 180)
+                    CodeTextEditor(text: $block.textContent, language: block.codeLanguage, isScrollEnabled: false)
+                        .frame(minWidth: max(geometry.size.width, 520), minHeight: inlineEditorHeight)
                         .onChange(of: block.textContent) { _, _ in
                             onCodeChanged()
                         }
                 }
             }
-            .frame(minHeight: 180)
+            .frame(minHeight: inlineEditorHeight)
         }
         .padding(10)
         .background(.quaternary.opacity(0.2))
@@ -66,6 +70,11 @@ struct CodeBlockView: View {
 
     private func copyCode() {
         Clipboard.copy(block.textContent)
+    }
+
+    private var inlineEditorHeight: CGFloat {
+        let lineCount = max(1, block.textContent.components(separatedBy: .newlines).count)
+        return max(180, CGFloat(lineCount) * 22 + 36)
     }
 }
 
@@ -108,9 +117,7 @@ private struct FocusedCodeEditorView: View {
 
                 GeometryReader { geometry in
                     ScrollView(.horizontal) {
-                        TextEditor(text: $block.textContent)
-                            .font(.system(.body, design: .monospaced))
-                            .scrollContentBackground(.hidden)
+                        CodeTextEditor(text: $block.textContent, language: block.codeLanguage, isScrollEnabled: true)
                             .frame(minWidth: max(geometry.size.width, 720), minHeight: geometry.size.height)
                             .onChange(of: block.textContent) { _, _ in
                                 onCodeChanged()

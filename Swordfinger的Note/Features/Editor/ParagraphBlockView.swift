@@ -16,7 +16,8 @@ struct ParagraphBlockView: View {
         TextEditor(text: $block.textContent)
             .font(.body)
             .scrollContentBackground(.hidden)
-            .frame(minHeight: 80)
+            .scrollDisabled(true)
+            .frame(minHeight: editorHeight)
             .padding(8)
             .background(.background)
             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -27,6 +28,16 @@ struct ParagraphBlockView: View {
             .onChange(of: block.textContent) { _, _ in
                 onTextChanged()
             }
+    }
+
+    private var editorHeight: CGFloat {
+        let lineCount = block.textContent
+            .components(separatedBy: .newlines)
+            .reduce(0) { partialResult, line in
+                partialResult + max(1, (line.count + 79) / 80)
+            }
+
+        return max(80, CGFloat(lineCount) * 22 + 36)
     }
 }
 

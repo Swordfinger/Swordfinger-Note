@@ -12,6 +12,13 @@ struct BlockEditorView: View {
     @Environment(\.modelContext) private var modelContext
 
     let page: NotePage
+    var showsPageHeader = false
+
+    @State private var isShowingDrawingConfiguration = false
+    @State private var selectedDrawingPreset: DrawingCanvasPreset = .sideNote
+    @State private var selectedDrawingPaperStyle: DrawingPaperStyle = .blank
+    @State private var createdDrawingBlockIDAwaitingFocus: UUID?
+    @State private var pendingFocusedDrawingBlockID: UUID?
 
     private var sortedBlocks: [NoteBlock] {
         page.blocks.sorted { firstBlock, secondBlock in
@@ -26,10 +33,24 @@ struct BlockEditorView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if sortedBlocks.isEmpty {
-                ContentUnavailableView("No Blocks", systemImage: "text.alignleft")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                List {
+                    if showsPageHeader {
+                        pageHeader
+                            .listRowSeparator(.hidden)
+                    }
+
+                    ContentUnavailableView("No Blocks", systemImage: "text.alignleft")
+                        .frame(maxWidth: .infinity, minHeight: 240)
+                        .listRowSeparator(.hidden)
+                }
+                .listStyle(.plain)
             } else {
                 List {
+                    if showsPageHeader {
+                        pageHeader
+                            .listRowSeparator(.hidden)
+                    }
+
                     ForEach(sortedBlocks) { block in
                         editorView(for: block)
                             .listRowSeparator(.hidden)
@@ -64,15 +85,7 @@ struct BlockEditorView: View {
                         Label("Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
 
-                    Menu {
-                        ForEach(DrawingCanvasPreset.newDrawingChoices, id: \.self) { preset in
-                            Button {
-                                addDrawingBlock(preset: preset)
-                            } label: {
-                                Text(preset.displayName)
-                            }
-                        }
-                    } label: {
+                    Button(action: presentDrawingConfiguration) {
                         Label("Drawing", systemImage: "pencil.tip")
                     }
                 } label: {
@@ -83,6 +96,42 @@ struct BlockEditorView: View {
                 Spacer()
             }
         }
+        .sheet(isPresented: $isShowingDrawingConfiguration) {
+            DrawingConfigurationSheet(
+                selectedPreset: $selectedDrawingPreset,
+                selectedPaperStyle: $selectedDrawingPaperStyle,
+                onCancel: {
+                    isShowingDrawingConfiguration = false
+                },
+                onCreate: {
+                    let block = createDrawingBlock(
+                        preset: selectedDrawingPreset,
+                        paperStyle: selectedDrawingPaperStyle
+                    )
+                    createdDrawingBlockIDAwaitingFocus = block.id
+                    isShowingDrawingConfiguration = false
+                }
+            )
+            .onDisappear {
+                guard let createdDrawingBlockIDAwaitingFocus else {
+                    return
+                }
+
+                pendingFocusedDrawingBlockID = createdDrawingBlockIDAwaitingFocus
+                self.createdDrawingBlockIDAwaitingFocus = nil
+            }
+        }
+    }
+
+    private var pageHeader: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(page.title)
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+
+            Divider()
+        }
+        .padding(.top, 4)
     }
 
     @ViewBuilder
@@ -93,7 +142,14 @@ struct BlockEditorView: View {
         case .heading:
             HeadingBlockView(block: block, onTextChanged: updatePageModificationDate)
         case .drawing:
-            DrawingBlockView(block: block, onDrawingChanged: updatePageModificationDate)
+            DrawingBlockView(
+                block: block,
+                onDrawingChanged: updatePageModificationDate,
+                pendingFocusedBlockID: pendingFocusedDrawingBlockID,
+                onPendingFocusConsumed: {
+                    pendingFocusedDrawingBlockID = nil
+                }
+            )
         case .code:
             CodeBlockView(block: block, onCodeChanged: updatePageModificationDate)
         }
@@ -107,24 +163,41 @@ struct BlockEditorView: View {
         addBlock(type: .paragraph)
     }
 
-    private func addDrawingBlock(preset: DrawingCanvasPreset) {
-        addBlock(type: .drawing, drawingCanvasPreset: preset)
+    private func presentDrawingConfiguration() {
+        selectedDrawingPreset = .sideNote
+        selectedDrawingPaperStyle = .blank
+        isShowingDrawingConfiguration = true
+    }
+
+    private func createDrawingBlock(preset: DrawingCanvasPreset, paperStyle: DrawingPaperStyle) -> NoteBlock {
+        addBlock(
+            type: .drawing,
+            drawingCanvasPreset: preset,
+            drawingPaperStyle: paperStyle
+        )
     }
 
     private func addCodeBlock() {
         addBlock(type: .code)
     }
 
-    private func addBlock(type: NoteBlockType, drawingCanvasPreset: DrawingCanvasPreset? = nil) {
+    @discardableResult
+    private func addBlock(
+        type: NoteBlockType,
+        drawingCanvasPreset: DrawingCanvasPreset? = nil,
+        drawingPaperStyle: DrawingPaperStyle? = nil
+    ) -> NoteBlock {
         let block = NoteBlock(
             page: page,
             order: nextBlockOrder,
             blockType: type,
-            drawingCanvasPreset: drawingCanvasPreset
+            drawingCanvasPreset: drawingCanvasPreset,
+            drawingPaperStyle: drawingPaperStyle
         )
 
         page.blocks.append(block)
         updatePageModificationDate()
+        return block
     }
 
     private func deleteBlock(_ block: NoteBlock) {
@@ -146,6 +219,53 @@ struct BlockEditorView: View {
 
     private func updatePageModificationDate() {
         page.modifiedAt = Date()
+    }
+}
+
+private struct DrawingConfigurationSheet: View {
+    @Binding var selectedPreset: DrawingCanvasPreset
+    @Binding var selectedPaperStyle: DrawingPaperStyle
+
+    let onCancel: () -> Void
+    let onCreate: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Canvas") {
+                    Picker("Canvas", selection: $selectedPreset) {
+                        ForEach(DrawingCanvasPreset.newDrawingChoices, id: \.self) { preset in
+                            Text(preset.displayName)
+                                .tag(preset)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                }
+
+                Section("Paper") {
+                    Picker("Paper", selection: $selectedPaperStyle) {
+                        ForEach(DrawingPaperStyle.allCases, id: \.self) { paperStyle in
+                            Text(paperStyle.displayName)
+                                .tag(paperStyle)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                }
+            }
+            .navigationTitle("New Drawing")
+            #if !os(macOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Create", action: onCreate)
+                }
+            }
+        }
     }
 }
 

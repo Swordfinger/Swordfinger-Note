@@ -17,6 +17,12 @@ final class NotePage {
     var trashedAt: Date?
     var order: Int
     var course: Course?
+    // nil preserves legacy block pages; non-nil identifies a ruled page even when empty.
+    var ruledDocumentData: Data?
+
+    var usesRuledPaper: Bool {
+        ruledDocumentData != nil || blocks.isEmpty
+    }
 
     @Relationship(deleteRule: .cascade, inverse: \NoteBlock.page)
     var blocks: [NoteBlock]

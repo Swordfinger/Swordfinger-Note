@@ -13,9 +13,15 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Query(sort: \Course.createdAt) private var courses: [Course]
 
+    #if DEBUG && canImport(UIKit)
+    @State private var showsRuledPagePrototype = false
+    #endif
+
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var preferredCompactColumn: NavigationSplitViewColumn = .sidebar
     @State private var selectedMainSelection: MainNavigationSelection?
     @State private var selectedPageID: PersistentIdentifier?
+    @State private var pageCreationError: String?
     @State private var renameTarget: RenameTarget?
     @State private var renameText = ""
     @State private var isRenamePresented = false
@@ -96,8 +102,16 @@ struct ContentView: View {
     }
 
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
+        NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredCompactColumn) {
             List(selection: $selectedMainSelection) {
+                #if DEBUG && canImport(UIKit)
+                Section("Development") {
+                    Button("Ruled Page Prototype") {
+                        showsRuledPagePrototype = true
+                    }
+                }
+                #endif
+
                 Section("Courses") {
                     ForEach(activeCourses) { course in
                         Text(course.name)
@@ -124,6 +138,9 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Courses")
+            #if os(iOS)
+            .toolbar(removing: isPageFocused && selectedPage != nil ? .sidebarToggle : nil)
+            #endif
             .navigationSplitViewColumnWidth(
                 min: columnMetrics.sidebar.minimum,
                 ideal: columnMetrics.sidebar.ideal,
@@ -195,27 +212,14 @@ struct ContentView: View {
                 }
             } else if let selectedPage {
                 GeometryReader { geometry in
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(selectedPage.title)
-                            .font(.largeTitle)
-                            .fontWeight(.semibold)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Created \(selectedPage.createdAt, format: Date.FormatStyle(date: .abbreviated, time: .shortened))")
-                                .foregroundStyle(.secondary)
-
-                            Text("Modified \(selectedPage.modifiedAt, format: Date.FormatStyle(date: .abbreviated, time: .shortened))")
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Divider()
-
-                        BlockEditorView(page: selectedPage)
-                    }
+                    NotePageBody(page: selectedPage)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .padding(detailPadding(for: geometry.size.width))
                 }
-                .navigationTitle(selectedPage.title)
+                .navigationTitle("")
+                #if !os(macOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .navigationSplitViewColumnWidth(
                     min: columnMetrics.detail.minimum,
                     ideal: columnMetrics.detail.ideal,
@@ -226,12 +230,21 @@ struct ContentView: View {
                         Button(action: togglePageFocus) {
                             Label(pageFocusButtonTitle, systemImage: pageFocusButtonSystemImage)
                         }
+                        .accessibilityLabel(isPageFocused ? "显示课程与页面导航" : "进入页面专注模式")
                     }
                 }
             } else {
                 ContentUnavailableView("Select a Page", systemImage: "doc.text")
             }
         }
+        #if os(iOS)
+        .toolbar(removing: isPageFocused && selectedPage != nil ? .sidebarToggle : nil)
+        #endif
+        #if DEBUG && canImport(UIKit)
+        .fullScreenCover(isPresented: $showsRuledPagePrototype) {
+            RuledPagePrototypeView()
+        }
+        #endif
         .onChange(of: selectedMainSelection) { _, newSelection in
             if case .course = newSelection {
                 reconcileSelection()
@@ -244,6 +257,14 @@ struct ContentView: View {
         }
         .onChange(of: activePageIDs) { _, _ in
             reconcileSelection()
+        }
+        .alert("页面尚未保存", isPresented: Binding(
+            get: { pageCreationError != nil },
+            set: { if !$0 { pageCreationError = nil } }
+        )) {
+            Button("关闭", role: .cancel) { pageCreationError = nil }
+        } message: {
+            Text(pageCreationError ?? "")
         }
         .alert(renameDialogTitle, isPresented: $isRenamePresented) {
             TextField(renameTextFieldTitle, text: $renameText)
@@ -473,6 +494,13 @@ struct ContentView: View {
             )
 
             selectedCourse.pages.append(page)
+            do {
+                page.ruledDocumentData = try RuledTextContent().encoded()
+                // Select the permanent identifier after the first save.
+                try modelContext.save()
+            } catch {
+                pageCreationError = error.localizedDescription
+            }
             selectedMainSelection = .course(selectedCourse.persistentModelID)
             selectedPageID = page.persistentModelID
         }
@@ -742,11 +770,23 @@ struct ContentView: View {
             return
         }
 
+        preferredCompactColumn = .detail
         columnVisibility = .detailOnly
     }
 
     private func exitPageFocus() {
+        preferredCompactColumn = .sidebar
+        #if os(iOS)
+        // Restore the system sidebar control before asking it to reveal both leading columns.
+        // Applying both changes in one update lets UIKit settle on only the Pages column.
+        withAnimation(.easeInOut(duration: 0.2)) {
+            columnVisibility = .doubleColumn
+        } completion: {
+            columnVisibility = .all
+        }
+        #else
         columnVisibility = .all
+        #endif
     }
 }
 
